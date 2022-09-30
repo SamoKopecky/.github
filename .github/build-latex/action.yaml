@@ -1,0 +1,71 @@
+name: build-latex
+
+inputs:
+  file_name:
+    required: true
+  github_token:
+    required: true
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.tex"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Clone repo
+      uses: actions/checkout@v3
+      with:
+        repository: '${{ github.event.client_payload.repository }}'
+
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%H-%M-%S-%d-%m-%Y')"
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y texlive \
+        texlive-plain-generic \
+        texlive-latex-extra \
+        texlive-lang-czechslovak \
+        texlive-lang-greek \
+        texlive-font-utils \
+        lmodern \
+        texlive-base
+
+    - name: Build pdfs
+      run: |
+        # Needs two rounds of compiling
+        pdflatex ${{ inputs.file_name }}.tex
+        pdflatex ${{ inputs.file_name }}.tex
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create release for build
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}s
+      with:
+        tag_name: ${{ steps.date.outputs.date }}
+        release_name: ${{ steps.date.outputs.date }}
+        body: |
+          Release for ${{ steps.date.outputs.date }}
+        draft: false
+        prerelease: false
+  
+    - name: Upload pdf to release
+      id: upload_pdf
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./${{ inputs.file_name }}.pdf
+        asset_name: ${{ inputs.file_name }}.pdf
+        asset_content_type: application/pdf
+
