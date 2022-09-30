@@ -1,17 +1,12 @@
-name: build-latex
+name: publish-pdf-from-tex
 
 inputs:
   file_name:
     required: true
   github_token:
     required: true
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - "**/*.tex"
+  repository:
+    required: true
 
 runs:
   using: 'composite'
@@ -19,13 +14,15 @@ runs:
     - name: Clone repo
       uses: actions/checkout@v3
       with:
-        repository: '${{ github.event.client_payload.repository }}'
+        repository: '${{ inputs.repository }}'
 
     - name: Get current date
+      shell: bash
       id: date
       run: echo "::set-output name=date::$(date +'%H-%M-%S-%d-%m-%Y')"
 
     - name: Install dependencies
+      shell: bash
       run: |
         sudo apt update
         sudo apt install -y texlive \
@@ -38,18 +35,17 @@ runs:
         texlive-base
 
     - name: Build pdfs
+      shell: bash
       run: |
         # Needs two rounds of compiling
         pdflatex ${{ inputs.file_name }}.tex
         pdflatex ${{ inputs.file_name }}.tex
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create release for build
       id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}s
+        GITHUB_TOKEN: ${{ inputs.github_token }}
       with:
         tag_name: ${{ steps.date.outputs.date }}
         release_name: ${{ steps.date.outputs.date }}
