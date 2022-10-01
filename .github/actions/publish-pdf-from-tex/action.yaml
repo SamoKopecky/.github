@@ -19,7 +19,9 @@ runs:
     - name: Get current date
       shell: bash
       id: date
-      run: echo "::set-output name=date::$(date +'%H-%M-%S-%d-%m-%Y')"
+      run: |
+        sudo timedatectl set-timezone Europe/Bratislava
+        echo "::set-output name=date::$(date +'%H-%M-%S-%d-%m-%Y')"
 
     - name: Install dependencies
       shell: bash
