@@ -1,0 +1,54 @@
+name: latex-to-release-pdf
+description: Create a pdf from latex source
+
+inputs:
+  release_url:
+    description: Release url to add created pdf to
+    required: true
+  file_name:
+    description: Name of the main latex file
+    required: true
+  github_token:
+    description: GitHub token
+    required: true
+  repository:
+    description: Repository slug name
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Clone repo
+      uses: actions/checkout@v3
+      with:
+        repository: "${{ inputs.repository }}"
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install -y texlive \
+        texlive-plain-generic \
+        texlive-latex-extra \
+        texlive-lang-czechslovak \
+        texlive-lang-greek \
+        texlive-font-utils \
+        lmodern \
+        texlive-base \
+        latexmk
+
+    - name: Build pdfs
+      shell: bash
+      run: |
+        latexmk -pdf ${{ inputs.file_name }}.tex
+
+    - name: Upload pdf to release
+      id: upload_pdf
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      with:
+        upload_url: ${{ inputs.release_url }}
+        asset_path: ./${{ inputs.file_name }}.pdf
+        asset_name: ${{ inputs.file_name }}.pdf
+        asset_content_type: application/pdf
