@@ -8,6 +8,9 @@ inputs:
   file_name:
     description: Name of the main latex file
     required: true
+  github_token:
+    description: GitHub token
+    required: true
   repository:
     description: Repository slug name
     required: true
@@ -58,4 +61,4 @@ runs:
         draft: false
         prerelease: false
         repository: ${{ inputs.repository }}
-        token: ${{ secrets.CUSTOM_GITHUB_TOKEN }} 
+        token: ${{ inputs.github_token }}
