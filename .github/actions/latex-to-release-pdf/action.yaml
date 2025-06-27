@@ -60,3 +60,5 @@ runs:
         files: ./${{ inputs.file_name }}.pdf
         draft: false
         prerelease: false
+        repository: ${{ inputs.repository }}
+        token: ${{ inputs.github_token}}
