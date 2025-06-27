@@ -23,6 +23,13 @@ runs:
       with:
         repository: "${{ inputs.repository }}"
 
+    - name: Get current date
+      shell: bash
+      id: date
+      run: |
+        sudo timedatectl set-timezone Europe/Bratislava
+        echo "::set-output name=date::$(date +'%H-%M-%S-%d-%m-%Y')"
+
     - name: Install dependencies
       shell: bash
       run: |
@@ -42,13 +49,14 @@ runs:
       run: |
         latexmk -pdf ${{ inputs.file_name }}.tex
 
-    - name: Upload pdf to release
-      id: upload_pdf
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
+    - name: Create release and upload pdf
+      id: create_release_upload_pdf
+      uses: softprops/actions-gh-release@v2 
       with:
-        upload_url: ${{ inputs.release_url }}
-        asset_path: ./${{ inputs.file_name }}.pdf
-        asset_name: ${{ inputs.file_name }}.pdf
-        asset_content_type: application/pdf
+        name: ${{ steps.date.outputs.date }}
+        tag_name: ${{ steps.date.outputs.date }}
+        body: |
+          Release for ${{ steps.date.outputs.date }}
+        files: ./${{ inputs.file_name }}.pdf
+        draft: false
+        prerelease: false
