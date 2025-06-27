@@ -51,7 +51,7 @@ runs:
 
     - name: Create release and upload pdf
       id: create_release_upload_pdf
-      uses: softprops/actions-gh-release@v2 
+      uses: softprops/action-gh-release@v2 
       with:
         name: ${{ steps.date.outputs.date }}
         tag_name: ${{ steps.date.outputs.date }}
